@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image to Direct Link - Free Image Hosting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .upload-zone {
+      border: 3px dashed #667eea;
+      border-radius: 15px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f8f9ff;
+      margin-bottom: 20px;
+    }
+    .upload-zone:hover {
+      border-color: #764ba2;
+      background: #f0f2ff;
+    }
+    .upload-zone.dragover {
+      border-color: #764ba2;
+      background: #e8ebff;
+      transform: scale(1.02);
+    }
+    .upload-icon {
+      font-size: 60px;
+      margin-bottom: 15px;
+    }
+    .upload-text {
+      color: #666;
+      font-size: 16px;
+    }
+    .upload-text strong {
+      color: #667eea;
+    }
+    .file-input {
+      display: none;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      flex: 1;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+    }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .preview-item {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      aspect-ratio: 1;
+    }
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-item .remove-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(220, 53, 69, 0.9);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-item .filename {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 4px;
+      font-size: 10px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-count {
+      text-align: center;
+      color: #667eea;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .result-section {
+      margin-top: 20px;
+      display: none;
+    }
+    .result-section.show {
+      display: block;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .result-header h3 {
+      color: #333;
+      font-size: 18px;
+    }
+    .result-urls {
+      background: #f8f9ff;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .url-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .url-item:last-child {
+      border-bottom: none;
+    }
+    .url-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .url-item input {
+      flex: 1;
+      border: none;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #333;
+    }
+    .url-item .copy-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .url-item .copy-btn:hover {
+      background: #5a6fd6;
+    }
+    .url-item .copy-btn.copied {
+      background: #28a745;
+    }
+    .info {
+      margin-top: 15px;
+      padding: 10px;
+      background: #e8f5e9;
+      border-radius: 8px;
+      color: #2e7d32;
+      font-size: 13px;
+      display: none;
+    }
+    .info.show {
+      display: block;
+    }
+    .error {
+      margin-top: 15px;
+      padding: 10px;
+      background: #ffebee;
+      border-radius: 8px;
+      color: #c62828;
+      font-size: 13px;
+      display: none;
+    }
+    .error.show {
+      display: block;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .loading.show {
+      display: block;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #f3f3f3;
+      border-radius: 3px;
+      margin-top: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-bar.show {
+      display: block;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .image-list {
+      margin-top: 30px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    .image-list h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    .image-card {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      aspect-ratio: 1;
+    }
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-card .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      padding: 8px;
+      display: flex;
+      gap: 5px;
+    }
+    .image-card .overlay button {
+      flex: 1;
+      padding: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .copy-link-btn {
+      background: #667eea;
+      color: white;
+    }
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #999;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Image to Direct Link</h1>
+    <p class="subtitle">Upload up to 20 images and get unique direct URLs instantly</p>
+    
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">📸</div>
+      <p class="upload-text">Drag & drop your images here or <strong>click to browse</strong></p>
+      <p class="upload-text" style="font-size: 12px; margin-top: 10px; color: #999;">Select up to 20 images | Supports: ALL image formats (JPG, PNG, GIF, WebP, JFIF, AVIF, TIFF, RAW, PSD...) | Max 10MB each</p>
+    </div>
+    
+    <input type="file" class="file-input" id="fileInput" accept="image/*,.jfif,.jfi,.jif,.avif,.heic,.heif,.raw,.cr2,.cr3,.nef,.arw,.dng,.raf,.psd,.ai,.eps,.tif,.tiff" multiple>
+    
+    <div class="file-count" id="fileCount"></div>
+    
+    <div class="preview-grid" id="previewGrid"></div>
+    
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="uploadBtn" disabled>Upload All</button>
+      <button class="btn btn-danger" id="clearBtn" disabled>Clear All</button>
+    </div>
+    
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p id="loadingText">Uploading images...</p>
+    </div>
+    
+    <div class="error" id="error"></div>
+    
+    <div class="result-section" id="resultSection">
+      <div class="result-header">
+        <h3>Uploaded URLs (<span id="uploadCount">0</span>)</h3>
+        <button class="btn" id="copyAllBtn" style="width: auto; padding: 8px 20px; font-size: 13px;">Copy All Links</button>
+      </div>
+      <div class="result-urls" id="resultUrls"></div>
+      <div class="info" id="info">All links copied to clipboard!</div>
+    </div>
+    
+    <div class="image-list" id="imageList">
+      <h3>Recent Uploads</h3>
+      <div class="image-grid" id="imageGrid"></div>
+    </div>
+    
+    <footer>
+      <p>Images are stored locally and accessible via direct links.</p>
+    </footer>
+  </div>
+
+  <script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const fileCount = document.getElementById('fileCount');
+    const previewGrid = document.getElementById('previewGrid');
+    const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loadingText');
+    const error = document.getElementById('error');
+    const resultSection = document.getElementById('resultSection');
+    const resultUrls = document.getElementById('resultUrls');
+    const uploadCount = document.getElementById('uploadCount');
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    const info = document.getElementById('info');
+    const imageGrid = document.getElementById('imageGrid');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+
+    let selectedFiles = [];
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files);
+      addFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      addFiles(files);
+      fileInput.value = '';
+    });
+
+    function addFiles(files) {
+      const remaining = 20 - selectedFiles.length;
+      const toAdd = files.slice(0, remaining);
+      
+      if (files.length > remaining) {
+        showError(`Only ${remaining} more images can be added. Maximum is 20.`);
+      }
+      
+      selectedFiles = [...selectedFiles, ...toAdd];
+      updateUI();
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      updateUI();
+    }
+
+    function updateUI() {
+      fileCount.textContent = selectedFiles.length > 0 
+        ? `${selectedFiles.length} image${selectedFiles.length > 1 ? 's' : ''} selected`
+        : '';
+      
+      uploadBtn.disabled = selectedFiles.length === 0;
+      clearBtn.disabled = selectedFiles.length === 0;
+      
+      previewGrid.innerHTML = '';
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          item.innerHTML = `
+            <img src="${e.target.result}" alt="${file.name}">
+            <button class="remove-btn" onclick="removeFile(${index})">×</button>
+            <div class="filename">${file.name}</div>
+          `;
+        };
+        reader.readAsDataURL(file);
+        previewGrid.appendChild(item);
+      });
+    }
+
+    clearBtn.addEventListener('click', () => {
+      selectedFiles = [];
+      updateUI();
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+      if (selectedFiles.length === 0) return;
+
+      loading.classList.add('show');
+      error.classList.remove('show');
+      resultSection.classList.remove('show');
+      info.classList.remove('show');
+      uploadBtn.disabled = true;
+      clearBtn.disabled = true;
+      progressBar.classList.add('show');
+      progressFill.style.width = '0%';
+
+      const formData = new FormData();
+      selectedFiles.forEach(file => {
+        formData.append('images', file);
+      });
+
+      try {
+        loadingText.textContent = `Uploading ${selectedFiles.length} images...`;
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload', true);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = percent + '%';
+          }
+        };
+
+        xhr.onload = function() {
+          const data = JSON.parse(xhr.responseText);
+          
+          if (data.success) {
+            displayResults(data.uploaded);
+            loadImages();
+            selectedFiles = [];
+            updateUI();
+          } else {
+            showError(data.error || 'Upload failed');
+          }
+          
+          loading.classList.remove('show');
+          progressBar.classList.remove('show');
+          uploadBtn.disabled = false;
+          clearBtn.disabled = false;
+        };
+
+        xhr.onerror = function() {
+          showError('Network error. Please try again.');
+          loading.classList.remove('show');
+          progressBar.classList.remove('show');
+          uploadBtn.disabled = false;
+          clearBtn.disabled = false;
+        };
+
+        xhr.send(formData);
+      } catch (err) {
+        showError('Network error. Please try again.');
+        loading.classList.remove('show');
+        progressBar.classList.remove('show');
+        uploadBtn.disabled = false;
+        clearBtn.disabled = false;
+      }
+    });
+
+    function displayResults(uploaded) {
+      resultUrls.innerHTML = '';
+      uploadCount.textContent = uploaded.length;
+
+      uploaded.forEach((img, index) => {
+        const item = document.createElement('div');
+        item.className = 'url-item';
+        item.innerHTML = `
+          <img src="${img.url}" alt="Uploaded">
+          <input type="text" value="${img.url}" readonly id="url-${index}">
+          <button class="copy-btn" onclick="copySingleLink('url-${index}', this)">Copy</button>
+        `;
+        resultUrls.appendChild(item);
+      });
+
+      resultSection.classList.add('show');
+    }
+
+    function copySingleLink(inputId, btn) {
+      const input = document.getElementById(inputId);
+      navigator.clipboard.writeText(input.value).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    copyAllBtn.addEventListener('click', () => {
+      const urls = Array.from(document.querySelectorAll('.result-urls input'))
+        .map(input => input.value)
+        .join('\n');
+      
+      navigator.clipboard.writeText(urls).then(() => {
+        info.classList.add('show');
+        copyAllBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyAllBtn.textContent = 'Copy All Links';
+          info.classList.remove('show');
+        }, 2000);
+      });
+    });
+
+    function showError(message) {
+      error.textContent = message;
+      error.classList.add('show');
+    }
+
+    async function loadImages() {
+      try {
+        const response = await fetch('/images');
+        const data = await response.json();
+        
+        imageGrid.innerHTML = '';
+        data.images.slice(0, 12).forEach(img => {
+          const card = document.createElement('div');
+          card.className = 'image-card';
+          card.innerHTML = `
+            <img src="${img.url}" alt="${img.filename}">
+            <div class="overlay">
+              <button class="copy-link-btn" onclick="copyLink('${img.url}')">Copy</button>
+              <button class="delete-btn" onclick="deleteImage('${img.filename}')">Del</button>
+            </div>
+          `;
+          imageGrid.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Failed to load images:', err);
+      }
+    }
+
+    function copyLink(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Link copied!');
+      });
+    }
+
+    async function deleteImage(filename) {
+      if (!confirm('Delete this image?')) return;
+      
+      try {
+        await fetch(`/images/${filename}`, { method: 'DELETE' });
+        loadImages();
+      } catch (err) {
+        alert('Failed to delete');
+      }
+    }
+
+    loadImages();
+  </script>
+</body>
+</html>
